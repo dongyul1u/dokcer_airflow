@@ -31,7 +31,7 @@ with dag:
     process_pdf_task = PythonOperator(
         task_id='process_pdf',
         python_callable=process_pdf,
-        op_kwargs={'bucket_name': 'your-bucket-name', 'file_key': 'path/to/your/pdf_file.pdf'},
+        op_kwargs={'bucket_name': 'bucket_name', 'file_key': 'file_key'},
     )
 
     end_task = PythonOperator(
