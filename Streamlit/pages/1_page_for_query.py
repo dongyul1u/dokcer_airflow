@@ -14,14 +14,13 @@ st.subheader('Snowflake SQL Executor')
 
 
 # FastAPI's URL
-FASTAPI_URL = 'http://localhost:8080/query/'
+FASTAPI_URL = 'http://fastapi2:8075/query/'
 
 # input SQL 
 # sql_query = st.text_area("SQL Query", height=300)
 sql_query = """
 select * from PDF_DATA.PUBLIC.PDF_METADATA;
 """
-# st.write(sql_query)
 
 SNOWFLAKE_ACCOUNT = os.getenv("SNOWFLAKE_ACCOUNT")
 SNOWFLAKE_USER = os.getenv("SNOWFLAKE_USER")
@@ -30,12 +29,12 @@ SNOWFLAKE_WAREHOUSE = os.getenv("SNOWFLAKE_WAREHOUSE")
 SNOWFLAKE_DATABASE = os.getenv("SNOWFLAKE_DATABASE")
 SNOWFLAKE_SCHEMA = os.getenv("SNOWFLAKE_SCHEMA")
 
-# st.write(SNOWFLAKE_PASSWORD)
-# st.write(SNOWFLAKE_ACCOUNT)
-# st.write(SNOWFLAKE_USER)
-# st.write(SNOWFLAKE_WAREHOUSE)
-# st.write(SNOWFLAKE_SCHEMA)
-# st.write(sql_query)
+st.write(SNOWFLAKE_PASSWORD)
+st.write(SNOWFLAKE_ACCOUNT)
+st.write(SNOWFLAKE_USER)
+st.write(SNOWFLAKE_WAREHOUSE)
+st.write(SNOWFLAKE_SCHEMA)
+st.write(sql_query)
 
 # execute button
 if st.button('Run Query'):
