@@ -28,37 +28,45 @@
 from fastapi import FastAPI, HTTPException
 import requests  # To make HTTP requests to Airflow's REST API
 import os
+from pydantic import BaseModel
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
+class Files(BaseModel):
+    file_keys:list[str]
+
 app = FastAPI()
 
-@app.post("/trigger-airflow/")
-async def trigger_pdf_processing(file_key: str):
-    bucket_name = os.getenv("BUCKET_NAME")
-    # Construct the payload for the Airflow DAG trigger
-    dag_trigger_payload = {
-        "conf": {
-            "bucket_name": bucket_name,
-            "file_key": file_key
-        }
-    }
 
-    # URL for the Airflow REST API endpoint to trigger a DAG
-    airflow_dag_trigger_url = "http://airflow-webserver:8080/api/v1/dags/handle_pdf_dag/dagRuns"
-    
-    # Authentication for Airflow (adjust as needed)
-    airflow_auth = ("airflow", "airflow")
-    
-    # Make the request to Airflow to trigger the DAG
-    response = requests.post(
-        airflow_dag_trigger_url,
-        json=dag_trigger_payload,
-        auth=airflow_auth
-    )
-    
-    if response.status_code == 200:
-        return {"message": "DAG triggered successfully"}
-    else:
-        raise HTTPException(status_code=400, detail="Failed to trigger DAG")
+@app.post("/trigger-airflow/")
+async def trigger_pdf_processing(files: Files):
+    bucket_name = os.getenv("BUCKET_NAME")
+    file_keys = files.file_keys
+    # Construct the payload for the Airflow DAG trigger
+    for file_key in file_keys:
+        dag_trigger_payload = {
+            "conf": {
+                "bucket_name": bucket_name,
+                "file_key": file_key
+            }
+        }
+
+        # URL for the Airflow REST API endpoint to trigger a DAG
+        airflow_dag_trigger_url = "http://dokcer_airflow-airflow-webserver-1:8080/api/v1/dags/handle_pdf_dag/dagRuns"
+        
+        # Authentication for Airflow (adjust as needed)
+        airflow_auth = ("airflow", "airflow")
+        try:
+            # Make the request to Airflow to trigger the DAG
+            response = requests.post(
+                airflow_dag_trigger_url,
+                json=dag_trigger_payload,
+                auth=airflow_auth
+            )
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as err:
+            raise HTTPException(status_code=response.status_code, detail=f"Failed to trigger Airflow for s3_url {file_key}: {err}")
+
+    return {"message": f"DAG triggered successfully, upload {file_keys}"}
+
 

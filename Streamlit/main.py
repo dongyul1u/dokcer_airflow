@@ -8,8 +8,8 @@ load_dotenv(override=True)
 
 ak = os.getenv("AWS_SK")
 aki = os.getenv("AWS_AK")
-# st.write(aki)
-# st.write(ak)
+st.write(aki)
+st.write(ak)
 
 # Streamlit UI
 st.title("Welcome to our application")
@@ -34,7 +34,7 @@ if st.button("Triger"):
         s3_resource = boto3.resource('s3',aws_access_key_id = aki, aws_secret_access_key =ak)
 
         # Iterate through the uploaded files and upload to S3
-        s3_urls = []  # Store S3 URLs
+        s3_keys = []  # Store S3 URLs
         for file in uploaded_files:
             file_bytes = file.read()
             file_name = file.name  # Get the original file name
@@ -46,10 +46,17 @@ if st.button("Triger"):
             )
             
             # Construct S3 URL
-            s3_url = f"https://{BUCKET_NAME}.s3.amazonaws.com/{file_name}"
-            s3_urls.append(s3_url)
+            s3_key = f"{file_name}"
+            s3_keys.append(s3_key)
 
+        s3_urls = {
+            'file_keys':s3_keys
+        }
+
+        st.write(s3_urls)
         st.success("All files uploaded!")
+
+
 
         # Trigger FastAPI service and provide S3 locations
         try:

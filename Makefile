@@ -7,17 +7,17 @@ init-venv:
 pytest:
 	pytest -v fastapi;
 
-prepare-init:
-	$(COMPOSE_BASE)	-f docker-compose-local.yaml up airflow-init;
+init:
+	$(COMPOSE_BASE) up airflow-init;
 build-up:
-	$(COMPOSE_BASE)	-f docker-compose-local.yaml up -d --build --remove-orphans;
+	$(COMPOSE_BASE) up -d --build --remove-orphans;
 
 up:	
-	$(COMPOSE_BASE)	-f docker-compose-local.yaml up -d;
+	$(COMPOSE_BASE) up;
 
 restart:	
-	$(COMPOSE_BASE)	-f docker-compose-local.yaml restart;
+	$(COMPOSE_BASE) restart;
 
 down:
-	$(COMPOSE_BASE)	-f docker-compose-local.yaml down;
+	$(COMPOSE_BASE) down;
 	
