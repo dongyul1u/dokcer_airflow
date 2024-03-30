@@ -1,102 +1,3 @@
-# import subprocess
-# from airflow import DAG
-# from airflow.operators.python import PythonOperator
-# from datetime import datetime, timedelta
-# from airflow.utils.dates import days_ago
-# import csv,os,sys
-
-# def pdf_extraction(s3_locations):### must change
-#     print("PDF extraction script running...")
-#     # Path to the PDF extraction script
-#     script_path = "../plugins/PDFParsing.py"
-    
-#     try:
-#         # Run the PDF extraction script using subprocess
-#         subprocess.run(["python", script_path] + s3_locations, check=True)
-#         print("PDF extraction completed successfully.")
-#     except subprocess.CalledProcessError as e:
-#         print(f"Error: PDF extraction script returned non-zero exit status {e.returncode}")
-
- 
-# def webscraping():
-#     print("Web Scraping script running...")
-#     script_path = "../plugins/Webscraping.py"
-    
-#     try:
-#         subprocess.run(["python", script_path], check=True)
-#         print("Web Scraping completed successfully.")
-#     except subprocess.CalledProcessError as e:
-#         print(f"Error: Web Scraping script returned non-zero exit status {e.returncode}")
- 
-# def data_validation():
-#     print("Data Validation script running...")
-#     script_path = "../plugins/DataValidation.py"
-    
-#     try:
-#         subprocess.run(["python", script_path], check=True)
-#         print("Data Validation completed successfully.")
-#     except subprocess.CalledProcessError as e:
-#         print(f"Error: Data Validation script returned non-zero exit status {e.returncode}")
- 
-# def sql_alchemy():
-#     print("Snowflake Data Upload script running...")
-#     script_path = "../plugins/SQLAlchemy.py"
-    
-#     try:
-#         subprocess.run(["python", script_path], check=True)
-#         print("Snowflake Data Upload completed successfully.")
-#     except subprocess.CalledProcessError as e:
-#         print(f"Error: Snowflake Data Upload script returned non-zero exit status {e.returncode}")
-
-
-
-# default_args = {
-#     'owner': 'airflow',
-#     'depends_on_past': False,
-#     'start_date': days_ago(1),
-#     'email_on_failure': False,
-#     'email_on_retry': False,
-#     'retries': 1,
-#     'retry_delay': timedelta(minutes=5),
-# }
-
-# dag = DAG(
-#     'PDF_Processing_DAG',
-#     default_args=default_args,
-#     description='DAG for processing PDF files with GROBID and BeautifulSoup',
-#     schedule_interval=None,
-# )
-
-# task_webscraping = PythonOperator(
-#     task_id='Webscraping',
-#     python_callable=webscraping,
-#     dag=dag,
-# )
-
-# task_pdf_extraction = PythonOperator(
-#     task_id='PDF_Extraction',
-#     python_callable=pdf_extraction,
-#     op_kwargs={'s3_locations': '{{ dag_run.conf["s3_locations"] }}'},  # Get list of S3 locations from DAG run
-#     dag=dag,
-# )
-
-# task_data_validation = PythonOperator(
-#     task_id='Data_Validation',
-#     python_callable=data_validation,
-#     dag=dag,
-# )
-
-# task_snowflake_sqlalchemy = PythonOperator(
-#     task_id='Upload_to_Snowflake',
-#     python_callable=sql_alchemy,
-#     dag=dag,
-# )
-
-# # Set dependencies
-# [task_pdf_extraction, task_webscraping] >> task_data_validation >> task_snowflake_sqlalchemy
-
-
-
 import os
 from airflow.models import DAG
 from airflow.operators.bash import BashOperator
@@ -104,39 +5,38 @@ from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 from datetime import timedelta
 
+from plugins.process_pdf import process_pdf
+
 dag = DAG(
-    dag_id="pdf_processing_dag",
-    schedule="0 0 * * *",   # https://crontab.guru/
-    start_date=days_ago(0),
+    dag_id="handle_pdf_dag",
+    schedule_interval="0 0 * * *",  # Daily at midnight
+    start_date=days_ago(1),
     catchup=False,
     dagrun_timeout=timedelta(minutes=60),
-    tags=["labs", "damg7245"],
-    # params=user_input,
+    tags=["pdf_processing", "s3", "PyPDF2"],
 )
 
-def print_keys(**kwargs):
-    print("-----------------------------")
-    print(f"Your Secret key is: {os.getenv('SAMPLE_ENV')}") # Donot print this anywhere, this is just for demo
-    print("-----------------------------")
+def start_message():
+    print("Starting PDF processing task")
 
+def end_message():
+    print("PDF processing task completed")
 
 with dag:
-    hello_world = BashOperator(
-        task_id="hello_world",
-        bash_command='echo "Hello from airflow"'
+    start_task = PythonOperator(
+        task_id='start_message',
+        python_callable=start_message,
     )
 
-    fetch_keys = PythonOperator(
-        task_id='fetch_keys',
-        python_callable=print_keys,
-        provide_context=True,
-        dag=dag,
+    process_pdf_task = PythonOperator(
+        task_id='process_pdf',
+        python_callable=process_pdf,
+        op_kwargs={'bucket_name': 'your-bucket-name', 'file_key': 'path/to/your/pdf_file.pdf'},
     )
 
-    bye_world = BashOperator(
-        task_id="bye_world",
-        bash_command='echo "Bye from airflow"'
+    end_task = PythonOperator(
+        task_id='end_message',
+        python_callable=end_message,
     )
 
-    hello_world >> fetch_keys >> bye_world
-    
+    start_task >> process_pdf_task >> end_task

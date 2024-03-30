@@ -28,7 +28,7 @@ if st.button("Triger"):
         st.success("Uploading files...")
         
         # Hardcoded S3 bucket name
-        BUCKET_NAME = "assignment04team03"
+        BUCKET_NAME = os.getenv("BUCKET_NAME")
         
         # Create an S3 resource
         s3_resource = boto3.resource('s3',aws_access_key_id = aki, aws_secret_access_key =ak)

@@ -5,3 +5,4 @@ apache-airflow
 lxml
 bs4
 requests
+PyPDF2
