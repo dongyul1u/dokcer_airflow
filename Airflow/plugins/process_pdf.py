@@ -1,10 +1,11 @@
 # Filename: process_pdf.py (to be placed in the Airflow plugins folder)
 
 import boto3
-from PyPDF2 import PdfReader
 from dotenv import load_dotenv
 import os
 from io import BytesIO
+from PyPDF2 import PdfReader
+
 
 load_dotenv(override=True)
 
@@ -33,11 +34,3 @@ def process_pdf(bucket_name, file_key):
     
     for page in pdf_reader.pages:
         print(page.extract_text())
-
-
-_NAME = os.getenv("BUCKET_NAME")
-file_name = "2024-l2-topics-combined-2.pdf"
-file_key = file_name
-print(_NAME)
-print(file_key)
-process_pdf(_NAME, file_key)

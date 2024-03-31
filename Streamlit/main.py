@@ -8,8 +8,7 @@ load_dotenv(override=True)
 
 ak = os.getenv("AWS_SK")
 aki = os.getenv("AWS_AK")
-st.write(aki)
-st.write(ak)
+
 
 # Streamlit UI
 st.title("Welcome to our application")
@@ -62,9 +61,10 @@ if st.button("Triger"):
         try:
             response = requests.post("http://fastapi:8000/trigger-airflow/", json=s3_urls)
             response.raise_for_status()  # Raise exception for non-200 status codes
-            st.success("FastAPI triggered successfully!")
-        except requests.HTTPError as e:
-            st.error(f"Failed to trigger FastAPI: {e.response.text}")
+            st.success(response.json().get('message'))
+        except requests.exceptions.HTTPError as err:
+            error_detail = err.response.json().get('detail', 'Unknown error')  # get the detail of error, if not print "Unknow error"
+            st.error(f"Error: {error_detail}")  # show streamlit
         except Exception as e:
             st.error(f"An error occurred: {e}")
     elif uploaded_files is not None:

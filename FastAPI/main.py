@@ -67,6 +67,8 @@ async def trigger_pdf_processing(files: Files):
         except requests.exceptions.HTTPError as err:
             raise HTTPException(status_code=response.status_code, detail=f"Failed to trigger Airflow for s3_url {file_key}: {err}")
 
-    return {"message": f"DAG triggered successfully, upload {file_keys}"}
+    return {
+        "message": f"DAG triggered successfully, upload {file_keys}",
+        }
 
 

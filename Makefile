@@ -7,10 +7,8 @@ init-venv:
 pytest:
 	pytest -v fastapi;
 
-init:
-	$(COMPOSE_BASE) up airflow-init;
 build-up:
-	$(COMPOSE_BASE) up -d --build --remove-orphans;
+	$(COMPOSE_BASE)	up --build --remove-orphans;
 
 up:	
 	$(COMPOSE_BASE) up;
@@ -20,4 +18,3 @@ restart:
 
 down:
 	$(COMPOSE_BASE) down;
-	
