@@ -1,5 +1,4 @@
 # Filename: process_pdf.py (to be placed in the Airflow plugins folder)
-
 import boto3
 from dotenv import load_dotenv
 import os
@@ -11,12 +10,11 @@ load_dotenv(override=True)
 
 ak = os.getenv("AWS_SK")
 aki = os.getenv("AWS_AK")
-print(ak,aki)
+# print(ak,aki)
 
 def process_pdf(bucket_name, file_key):
     """
-    Download a PDF from S3, read its content using PyPDF2, and print the text of each page.
-
+    Download a PDF from S3, read its content using PyPDF2, and put it to a csv.
     :param bucket_name: Name of the S3 bucket
     :param file_key: Key of the file in the S3 bucket
     """
