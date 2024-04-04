@@ -11,7 +11,7 @@ import requests
 from utils.Model_PDFClass import MetaDataPDF, ContentPDF
  
 current_file_dir = os.path.dirname(os.path.abspath(__file__))
-files_dir = os.path.join(current_file_dir, '..', 'files')
+files_dir = os.path.join(current_file_dir, 'files')
  
 class Dataset:
  
@@ -51,6 +51,11 @@ class Dataset:
         soup = BeautifulSoup(xml_response, 'xml')
  
         filename = soup.find('Filename').text
+        if filename is None:
+            print("Warning: 'Filename' tag not found in XML response")
+            filename = "Unknown"
+        else:
+            filename = filename.text
         title = soup.find('Title').text
         idno = soup.find('Idno').text
  
