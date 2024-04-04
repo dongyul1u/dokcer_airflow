@@ -76,10 +76,13 @@ x-airflow-common:
     AIRFLOW__CORE__ENABLE_XCOM_PICKLING: 'true' # Add this parameter
     SAMPLE_ENV: "SOME_DUMMY_VALUE" # Can be picked from env as variable using syntax: ${ENV_VAR_NAME}
   volumes:
-    - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
-    - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
-    - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
-    - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/dags/plugins
+      - ${AIRFLOW_PROJ_DIR:-.}:/sources
+      - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
+      - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
+      - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
+      - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/dags/plugins
+      - ${AIRFLOW_PROJ_DIR:-.}/utils:/opt/airflow/dags/utils
+      - ${AIRFLOW_PROJ_DIR:-.}/files:/opt/airflow/dags/plugins/files
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -255,6 +258,8 @@ services:
       - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
       - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
       - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/dags/plugins
+      - ${AIRFLOW_PROJ_DIR:-.}/utils:/opt/airflow/dags/utils
+      - ${AIRFLOW_PROJ_DIR:-.}/files:/opt/airflow/dags/plugins/files
 
   airflow-cli:
     <<: *airflow-common
@@ -331,6 +336,15 @@ services:
     depends_on:
       - fastapi
       - fastapi2
+
+  grobid:
+    image: lfoppiano/grobid:0.6.2
+    container_name: grobid_image
+    init: true
+    ulimits:
+      core: 0
+    ports:
+      - "8070:8070"
 
 volumes:
   postgres-db-volume:
