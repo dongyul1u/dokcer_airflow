@@ -9,12 +9,16 @@ load_dotenv(override=True)
 
 
 def download_pdf(bucket_name, file_keys):
-    download_path = '/opt/airflow/dags/plugins/files' 
+    download_path = os.getenv('AIRFLOW_FILES_PATH')
     # download_path = '/Users/ldy/git/dokcer_airflow/Airflow/files'
     ak = os.getenv("AWS_SK")
     aki = os.getenv("AWS_AK")
-    if not os.path.exists(download_path):
-        os.makedirs(download_path)
+    if download_path is not None:
+        if not os.path.exists(download_path):
+            os.makedirs(download_path)
+    else:
+        print('No file path in the docke image')
+        exit(1)
 
     s3_client = boto3.client('s3',aws_access_key_id = aki, aws_secret_access_key =ak)
     
