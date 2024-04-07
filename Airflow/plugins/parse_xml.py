@@ -6,12 +6,35 @@ import pandas as pd
 import re
  
 from utils.Model_PDFClass import MetaDataPDF, ContentPDF
- 
+
 xml_path = os.getenv('AIRFLOW_FILES_PATH')
- 
-# METADATA_FILES = [os.path.join(xml_path, f'Grobid_RR_2024_l{i}_combined_metadata.xml') for i in range(1, 4)]
-# CONTENT_FILES = [os.path.join(xml_path, f'2024-l{i}-topics-combined-2.pdf.tei.xml') for i in range(1, 4)]
- 
+
+FILES= {'content':[],'metadata':[]}
+METADATA_FILES = []
+CONTENT_FILES = []
+
+def find_xml_files(folder_path):
+    # Initialize an empty list to store matching filenames
+    global FILES, METADATA_FILES, CONTENT_FILES
+    
+    # Walk through the specified folder and its subfolders
+    for root, dirs, files in os.walk(folder_path):
+        # Iterate over the list of files to check if they end with "_content.xml"
+        for file in files:
+            if file.endswith("_content.xml"):
+                # If so, add the file's full path to the list
+                FILES['content'].append(os.path.join(root, file))
+
+            if file.endswith("_metadata.xml"):
+                # If so, add the file's full path to the list
+                FILES['metadata'].append(os.path.join(root, file))
+    METADATA_FILES = FILES['metadata']
+    CONTENT_FILES = FILES['content']
+    METADATA_FILES.sort()
+    CONTENT_FILES.sort()
+
+
+
 class Dataset:
  
     def __init__(self):
@@ -30,16 +53,23 @@ class Dataset:
         for i, file in enumerate(METADATA_FILES):
             soup = BeautifulSoup(open(file), 'xml')
  
-            filename = soup.find('Filename').text
-            idno = soup.find('Idno').text
+            file_path_name = soup.find('Filename').text # type: ignore
+            filename = os.path.basename(file_path_name)
+            idno = soup.find('Idno').text # type: ignore
  
             # Use calculate_year and calculate_level methods here
             year = self.calculate_year(filename)
             level = self.calculate_level(filename)
  
             # Use the preset title if available, otherwise use the default title from the XML
-            title = preset_titles.get(i + 1, soup.find('Title').text)
+            title = preset_titles.get(i + 1, soup.find('Title').text) # type: ignore
  
+            print(filename)
+            print(title)
+            print(idno)
+            print(year)
+            print(level)
+
             metadata = MetaDataPDF(
                 doc_id=i + 1,
                 filename=filename,
@@ -174,5 +204,18 @@ class Dataset:
         self.save_metadata_to_csv(metadata_csv_file)
         self.save_content_to_csv(content_csv_file)
  
-dataset = Dataset()
-dataset.save_to_csv('metadata.csv', 'content.csv')
+
+def parse_xml():
+    find_xml_files(xml_path)
+    print('check files name:')
+    for i, file in enumerate(METADATA_FILES):
+        print(i, file)
+    
+    dataset = Dataset()
+    if xml_path is not None:
+        metadata_csv_file =  xml_path + '/metadata.csv'
+        content_csv_file =  xml_path + '/content.csv'
+        print('csv PATTTTTTH:' , metadata_csv_file, content_csv_file)
+    else:
+        print('error not file path in environment variable')
+    dataset.save_to_csv(metadata_csv_file, content_csv_file)

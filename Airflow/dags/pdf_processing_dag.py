@@ -5,8 +5,8 @@ from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 from datetime import timedelta
 
-from plugins.process_pdf import process_pdf
 from plugins.download_pdf import download_pdf
+from plugins.parse_xml import parse_xml 
 from plugins.grobid_parsing import PDF_XML_function
 
 
@@ -50,9 +50,14 @@ with dag:
         },
     )
 
+    parse_xml_to_csv = PythonOperator(
+        task_id='parse_xml_to_csv',
+        python_callable=parse_xml,
+    )
+
     end_task = PythonOperator(
         task_id='end_message',
         python_callable=end_message,
     )
 
-    start_task >> download_pdf_task >> grobid_parsing_task >> end_task
+    start_task >> download_pdf_task >> grobid_parsing_task >> parse_xml_to_csv >> end_task #type: ignore

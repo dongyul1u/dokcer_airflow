@@ -5,7 +5,7 @@ import re
 
 class MetaDataPDF(BaseModel):
     doc_id: int = Field(gt=0, lt=4)
-    filename: str = Field(pattern=r'^\d{4}-l[1-3]-topics-combined-\d\.pdf$')
+    filename: str #= Field(pattern=r'^\d{4}-l[1-3]-topics-combined-\d\.pdf$')
     title: str
     idno: str
     level: str
@@ -35,12 +35,12 @@ class MetaDataPDF(BaseModel):
             raise ValueError("Invalid year: must be between 2010 and 2025.")
         return value
 
-    @validator('filename')
-    @classmethod
-    def validate_filename(cls, value):
-        if not re.match(r'^\d{4}-l[1-3]-topics-combined-\d\.pdf$', value):
-            raise ValueError("Invalid filename format.")
-        return value
+    # @validator('filename')
+    # @classmethod
+    # def validate_filename(cls, value):
+    #     if not re.match(r'^\d{4}-l[1-3]-topics-combined-\d\.pdf$', value):
+    #         raise ValueError("Invalid filename format.")
+    #     return value
     
     @validator('title')
     @classmethod
