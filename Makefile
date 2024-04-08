@@ -18,3 +18,6 @@ restart:
 
 down:
 	$(COMPOSE_BASE) down;
+
+recreate:
+	$(COMPOSE_BASE) up --build -d --force-recreate

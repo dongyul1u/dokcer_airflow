@@ -24,7 +24,7 @@ def parse_pdf_with_grobid(pdf_file):
     # Extract the base name of the PDF file to use for the XML file name
     pdf_file_name = Path(pdf_file).stem
     if file_path is not None:
-        xml_file_path = file_path + '/' + f"{pdf_file_name}.xml" 
+        xml_file_path = file_path + '/' + f"{pdf_file_name}_content.xml" 
 
     with open(xml_file_path, 'wb') as file:
         file.write(xml_content)
@@ -59,17 +59,17 @@ def extract_metadata(root, filename):
         print(f"Error parsing XML: {str(e)}")
         return None
  
-def save_metadata_to_json(metadata, pdf_file_name):
+def save_metadata_to_json(metadata, pdf_file_path):
     import json
-    print('file name-----',pdf_file_name)
-    output_file_path = f"{pdf_file_name}_metadata.json"
+    print('file name-----',pdf_file_path)
+    output_file_path = f"{pdf_file_path}_metadata.json"
     print('file_path -----',output_file_path)
     with open(output_file_path, 'w', encoding='utf-8') as file:
         json.dump(metadata, file, indent=2)
  
-def save_metadata_to_xml(metadata, pdf_file_name):  
-    print('file name-----',pdf_file_name)
-    output_file_path = f"{pdf_file_name}_metadata.xml"
+def save_metadata_to_xml(metadata, pdf_file_path):  
+    print('file name-----',pdf_file_path)
+    output_file_path = f"{pdf_file_path}_metadata.xml"
     print('file_path -----',output_file_path)
     root = etree.Element("metadata") # type: ignore
     for key, value in metadata.items():
@@ -108,9 +108,9 @@ def PDF_XML_function(pdf_files):
         metadata = extract_metadata(root, _path)
         pdf_file_name = Path(pdf_file).stem
         if file_path is not None:
-            pdf_file = file_path + '/' + pdf_file_name
+            pdf_file_path = file_path + '/' + pdf_file_name
         if metadata:
             all_metadata.append(metadata)
             # file_prefix = f"{_path.split('-')[0]}_{_path.split('-')[1].split('.')[0]}"
-            save_metadata_to_json(metadata,pdf_file)
-            save_metadata_to_xml(metadata,pdf_file)
+            save_metadata_to_json(metadata,pdf_file_path)
+            save_metadata_to_xml(metadata,pdf_file_path)

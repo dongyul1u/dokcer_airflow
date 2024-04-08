@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+import logging
 from airflow.models import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
@@ -8,7 +10,8 @@ from datetime import timedelta
 from plugins.download_pdf import download_pdf
 from plugins.parse_xml import parse_xml 
 from plugins.grobid_parsing import PDF_XML_function
-
+from plugins.snowflake_code import snowflake_upload
+load_dotenv(override=True)
 
 dag = DAG(
     dag_id="handle_pdf_dag",
@@ -24,6 +27,20 @@ def start_message():
 
 def end_message():
     print("PDF processing task completed")
+
+def delete_all_files():
+    folder_path = os.getenv('AIRFLOW_FILES_PATH')
+    if folder_path is not None:
+        for root, dirs, files in os.walk(folder_path):
+            if files is None:
+                return None
+            for file in files:
+                file_path = os.path.join(root, file)
+                os.remove(file_path)
+                print(f"Deleted: {file_path}")
+    else:
+        # capture by airflow logs
+        logging.error('No Path for files')
 
 
 with dag:
@@ -41,7 +58,6 @@ with dag:
         },
     )
 
-
     grobid_parsing_task = PythonOperator(
         task_id='grobid_pdf_to_xml',
         python_callable=PDF_XML_function,
@@ -55,9 +71,19 @@ with dag:
         python_callable=parse_xml,
     )
 
+    files_upload = PythonOperator(
+        task_id='snowflake_upload',
+        python_callable=snowflake_upload,
+    )
+
+    files_delete = PythonOperator(
+        task_id='delete_files',
+        python_callable=delete_all_files,
+    )
+
     end_task = PythonOperator(
         task_id='end_message',
         python_callable=end_message,
     )
 
-    start_task >> download_pdf_task >> grobid_parsing_task >> parse_xml_to_csv >> end_task #type: ignore
+    start_task >> download_pdf_task >> grobid_parsing_task >> parse_xml_to_csv >> files_upload >> end_task #type: ignore
