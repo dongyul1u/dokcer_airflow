@@ -86,4 +86,4 @@ with dag:
         python_callable=end_message,
     )
 
-    start_task >> download_pdf_task >> grobid_parsing_task >> parse_xml_to_csv >> files_upload >> end_task #type: ignore
+    start_task >> download_pdf_task >> grobid_parsing_task >> parse_xml_to_csv >> files_upload >> files_delete >> end_task #type: ignore

@@ -3,6 +3,7 @@ import requests
 import boto3
 from dotenv import load_dotenv
 import os
+import snowflake.connector
 
 load_dotenv(override=True)
 
@@ -11,18 +12,55 @@ aki = os.getenv("AWS_AK")
 
 
 # Streamlit UI
-st.title("Welcome to our application")
-st.header("Big Data Project - Team03")
-st.subheader("Airflow work flow")
+st.title("Big Data Project - Team03")
+st.header("Welcome to our PDF Parser")
+# st.subheader("Airflow work flow")
 # Number of PDF files input
 number_of_files = st.number_input("Please enter the number of PDF files", min_value=1, max_value=10, step=1)
 
 uploaded_files = None
+# only run once for initialize
+@st.cache_resource
+def initialize():
+    # drop table function
+    SNOWFLAKE_ACCOUNT = os.getenv("SNOWFLAKE_ACCOUNT")
+    SNOWFLAKE_USER = os.getenv("SNOWFLAKE_USER")
+    SNOWFLAKE_PASSWORD =  os.getenv("SNOWFLAKE_PASSWORD")
+    SNOWFLAKE_WAREHOUSE = os.getenv("SNOWFLAKE_WAREHOUSE")
+    SNOWFLAKE_DATABASE = os.getenv("SNOWFLAKE_DATABASE")
+    SNOWFLAKE_SCHEMA = os.getenv("SNOWFLAKE_SCHEMA")
+    sql = [
+    'DROP TABLE if exists PDF_CONTENTS;',
+    'DROP TABLE if exists PDF_METADATA;',
+    'DROP TABLE if exists TEST_PDF_CONTENTS;',
+    'DROP TABLE if exists TEST_PDF_METADATA;',
+    ]
+    try:
+        conn = snowflake.connector.connect(
+            user=SNOWFLAKE_USER,
+            password=SNOWFLAKE_PASSWORD,
+            account=SNOWFLAKE_ACCOUNT,
+            warehouse=SNOWFLAKE_WAREHOUSE,
+            database=SNOWFLAKE_DATABASE,
+            schema=SNOWFLAKE_SCHEMA
+        )
+        cursor = conn.cursor()
+        for q in sql:
+            cursor.execute(q)
+        result = cursor.fetchall()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        st.error(f'Failed{e}')
+        exit(1)
+
+initialize()
+
 
 if number_of_files > 0:
         uploaded_files = st.file_uploader("Upload PDF files", type="pdf", accept_multiple_files=True)
 
-if st.button("Triger"):
+if st.button("Upload"):
     if uploaded_files is not None and len(uploaded_files) == number_of_files:
         st.success("Uploading files...")
         
@@ -52,7 +90,7 @@ if st.button("Triger"):
             'file_keys':s3_keys
         }
 
-        st.write(s3_urls)
+        # st.write(s3_urls)
         st.success("All files uploaded!")
 
 

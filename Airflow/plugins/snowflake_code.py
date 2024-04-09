@@ -5,6 +5,7 @@ import csv
 load_dotenv(override=True)
 
 create_test_stage = """CREATE STAGE TEST_PDF_STAGING DIRECTORY = ( ENABLE = true );"""
+drop_test_stage = """DROP STAGE if exists TEST_PDF_STAGING;"""
 
 create_test_contents_table = """CREATE OR REPLACE TABLE test_pdf_contents (
         ContentID INTEGER,
@@ -44,6 +45,8 @@ copy_metadata_to_test_table = """COPY INTO test_pdf_metadata
 
 
 create_prod_stage = """CREATE STAGE PDF_STAGING DIRECTORY = ( ENABLE = true );"""
+drop_prod_stage = """DROP STAGE if exists PDF_STAGING;"""
+
 create_prod_table_query = """CREATE OR REPLACE TABLE pdf_contents (
         ContentID INTEGER,
         DocID INTEGER,
@@ -64,7 +67,7 @@ create_prod_metadata_table = """CREATE OR REPLACE TABLE pdf_metadata (
         );"""
 
 upload_contents_to_prod_stage = f"""PUT file://{files_path}/content.csv @PDF_DATA.public.PDF_STAGING;"""
-upload_metadata_to_prod_stage = f"""PUT file://{files_path}/content.csv @PDF_DATA.public.PDF_STAGING;"""
+upload_metadata_to_prod_stage = f"""PUT file://{files_path}/metadata_new.csv @PDF_DATA.public.PDF_STAGING;"""
 
 copy_stage_to_prod_table = """COPY INTO pdf_contents
   FROM @PDF_DATA.public.PDF_STAGING
@@ -132,21 +135,23 @@ def upload():
       connection.execute("USE DATABASE PDF_DATA")
       connection.execute("USE WAREHOUSE COMPUTE_WH")
       
-      # results = connection.execute(create_test_stage)
+      results = connection.execute(create_test_stage)
       results = connection.execute(create_test_contents_table)
       results = connection.execute(create_test_metadata_table)
       results = connection.execute(upload_contents_to_test_stage)
       results = connection.execute(upload_metadata_to_test_stage)
       results = connection.execute(copy_contents_to_test_table)
       results = connection.execute(copy_metadata_to_test_table)
+      results = connection.execute(drop_test_stage)
       
-      # results = connection.execute(create_prod_stage)
+      results = connection.execute(create_prod_stage)
       results = connection.execute(create_prod_table_query)
       results = connection.execute(create_prod_metadata_table)
       results = connection.execute(upload_contents_to_prod_stage)
       results = connection.execute(upload_metadata_to_prod_stage)
       results = connection.execute(copy_stage_to_prod_table)
       results = connection.execute(copy_metadata_to_prod_table)
+      results = connection.execute(drop_prod_stage)
 
 
   finally:
